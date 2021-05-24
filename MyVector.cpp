@@ -160,8 +160,44 @@ void MyVector::insert(const size_t i, const MyVector& value) {
     }
     _size = _size + i;
 }
-void MyVector::insert(ConstVectorIterator it, const ValueType& value) {}
-void MyVector::insert(ConstVectorIterator it, const MyVector& value) {}
+void MyVector::insert(MyVector::ConstVectorIterator it, const ValueType& value) {
+    if (_capacity < _size + 1) {
+        resize(_capacity + 1);
+    }
+    ++_size;
+    if (_data == nullptr) {
+        _data = new ValueType(1);
+    }
+    MyVector::VectorIterator i;
+    for(i = begin(); *i != *it; ++i){}
+    ++i;
+    ValueType prevValue, curValue;
+    prevValue = *it;
+    *(i) = value;
+    ++i;
+    for (i; i != end(); ++i) {
+        curValue = *(i);
+        *(i) = prevValue;
+        prevValue = curValue;
+    }
+}
+void MyVector::insert(ConstVectorIterator it, const MyVector& value) {
+    if (_capacity < (_size + value._size)) {
+        resize(_size + value._size);
+    }
+    MyVector::VectorIterator i, j;
+    for (i = begin(), j = begin(); *i != *it; ++i, ++j) {}
+    ++i;
+    ++j;
+    MyVector::VectorIterator k = j;
+    for (i; i != (_data + value._size); ++i) {}
+    for (i; i != (_data + value._size + _size); ++i, ++j) {
+        *i = *j;
+    }
+    for (int l = 0; l < value._size; ++l, ++k) {
+        *k = value._data[l];
+    }
+}
 
 void MyVector::popBack() {
     --_size;
