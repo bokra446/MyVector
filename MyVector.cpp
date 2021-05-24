@@ -65,6 +65,7 @@ MyVector& MyVector::operator=(const MyVector& copy) {
     }
     _coef = copy._coef;
     _strategy = copy._strategy;
+    return *this;
 }
 
 MyVector::MyVector(MyVector&& other) noexcept {
@@ -88,6 +89,7 @@ MyVector& MyVector::operator=(MyVector&& other) noexcept {
     other._data = nullptr;
     std::swap(_coef, other._coef);
     std::swap(_strategy, other._strategy);
+    return *this;
 }
 
 MyVector::~MyVector() {
@@ -158,7 +160,7 @@ void MyVector::insert(const size_t i, const MyVector& value) {
     }
     _size = _size + i;
 }
-void MyVector::insert(ConstVectorIterator it, const ValueType& value){}
+void MyVector::insert(ConstVectorIterator it, const ValueType& value) {}
 void MyVector::insert(ConstVectorIterator it, const MyVector& value) {}
 
 void MyVector::popBack() {
@@ -176,7 +178,7 @@ void MyVector::erase(const size_t i, const size_t len) {
     }
 }
 
-MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) const{
+MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) const {
     if (isBegin) {
         for (MyVector::VectorIterator i = begin(); i != end(); ++i) {
             if (*(i) == value) {
@@ -244,26 +246,26 @@ void MyVector::resize(int must) {
     delete[] data;
 }
 
-MyVector::VectorIterator MyVector::begin(){
+MyVector::VectorIterator MyVector::begin() const {
     return MyVector::VectorIterator(&_data[0]);
 }
-MyVector::ConstVectorIterator MyVector::cbegin() const{
+MyVector::ConstVectorIterator MyVector::cbegin() const {
     return MyVector::ConstVectorIterator(&_data[0]);
 }
-MyVector::VectorIterator MyVector::end(){
+MyVector::VectorIterator MyVector::end() const {
     return MyVector::VectorIterator(&_data[size()]);
 }
-MyVector::ConstVectorIterator MyVector::cend() const{
+MyVector::ConstVectorIterator MyVector::cend() const {
     return MyVector::ConstVectorIterator(&_data[size()]);
 }
 
-MyVector::VectorIterator::VectorIterator(pointer pData) 
+MyVector::VectorIterator::VectorIterator(pointer pData)
     : _ptr(pData)
-    {}
+{}
 
-MyVector::ConstVectorIterator::ConstVectorIterator(pointer pData) 
+MyVector::ConstVectorIterator::ConstVectorIterator(pointer pData)
     : _ptr(pData)
-    {}
+{}
 
 
 MyVector::VectorIterator::reference MyVector::VectorIterator::operator* () {
@@ -317,7 +319,7 @@ MyVector::ConstVectorIterator& MyVector::ConstVectorIterator::operator++() {
 }
 MyVector::ConstVectorIterator MyVector::ConstVectorIterator::operator++(int) {
     ConstVectorIterator temp = *this;
-    ++*(this);
+    ++* (this);
     return temp;
 }
 /*MyVector::ConstVectorIterator& MyVector::ConstVectorIterator::operator--() {

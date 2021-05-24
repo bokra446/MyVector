@@ -36,8 +36,8 @@ public:
         bool operator!=(const VectorIterator& other) const;
         VectorIterator& operator++();
         VectorIterator operator++(int);
-      //VectorIterator& operator--();
-      //VectorIterator operator--(int);
+        //VectorIterator& operator--();
+        //VectorIterator operator--(int);
     private:
         pointer _ptr;
     };
@@ -60,8 +60,8 @@ public:
         bool operator!=(const ConstVectorIterator& other) const;
         ConstVectorIterator& operator++();
         ConstVectorIterator operator++(int);
-      //ConstVectorIterator& operator--();
-      //ConstVectorIterator operator--(int);
+        //ConstVectorIterator& operator--();
+        //ConstVectorIterator operator--(int);
     private:
         pointer _ptr;
     };
@@ -87,9 +87,9 @@ public:
     size_t size() const;
     float loadFactor() const;
 
-    VectorIterator begin();
+    VectorIterator begin() const;
     ConstVectorIterator cbegin() const;
-    VectorIterator end();
+    VectorIterator end() const;
     ConstVectorIterator cend() const;
 
     // доступ к элементу, 
