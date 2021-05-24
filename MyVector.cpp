@@ -7,9 +7,9 @@
 
 MyVector::MyVector(size_t size,
     ResizeStrategy strategy,
-    float coef = 1.5f) {
+    float coef) {
     _size = size;
-    _capacity = _size * coef;
+    _capacity = static_cast<int>(_size * coef);
     _data = new ValueType[_capacity];
     _coef = coef;
     _strategy = strategy;
@@ -18,11 +18,11 @@ MyVector::MyVector(size_t size,
 MyVector::MyVector(size_t size,
     ValueType value,
     ResizeStrategy strategy,
-    float coef = 1.5f) {
+    float coef) {
     _size = size;
-    _capacity = _size * coef;
+    _capacity = static_cast<int>(_size * coef);
     _data = new ValueType[_capacity];
-    for (int i = 0; i < _size; ++i) {
+    for (size_t i = 0; i < _size; ++i) {
         _data[i] = value;
     }
     _strategy = strategy;
@@ -37,7 +37,7 @@ MyVector::MyVector(const MyVector& copy) {
     }
     else {
         _data = new ValueType[_capacity];
-        for (int i = 0; i < _size; ++i) {
+        for (size_t i = 0; i < _size; ++i) {
             _data[i] = copy._data[i];
         }
     }
@@ -59,7 +59,7 @@ MyVector& MyVector::operator=(const MyVector& copy) {
     }
     else {
         _data = new ValueType[_capacity];
-        for (int i = 0; i < _size; ++i) {
+        for (size_t i = 0; i < _size; ++i) {
             _data[i] = copy._data[i];
         }
     }
@@ -109,7 +109,7 @@ float MyVector::loadFactor() const {
         return 1;
     }
     else {
-        return _size / _capacity;
+        return static_cast<float>(_size) / _capacity;
     }
 }
 
@@ -140,7 +140,7 @@ void MyVector::insert(const size_t i, const ValueType& value) {
     ValueType prevValue, curValue;
     prevValue = _data[i];
     _data[i] = value;
-    for (int j = i + 1; j < _size; ++j) {
+    for (size_t j = i + 1; j < _size; ++j) {
         curValue = _data[j];
         _data[j] = prevValue;
         prevValue = curValue;
@@ -150,10 +150,10 @@ void MyVector::insert(const size_t i, const MyVector& value) {
     if (_capacity < (_size + value._size)) {
         resize(_size + value._size);
     }
-    for (int j = _size - 1; j >= i; --j) {
+    for (size_t j = _size - 1; j >= i; --j) {
         _data[j + value._size] = _data[j];
     }
-    for (int j = i; j < value._size; ++j) {
+    for (size_t j = i; j < value._size; ++j) {
         _data[j] = value._data[j - i];
     }
     _size = _size + i;
@@ -171,22 +171,22 @@ void MyVector::erase(const size_t i) {
 
 void MyVector::erase(const size_t i, const size_t len) {
     _size = _size - len;
-    for (int j = i; j < _size; ++j) {
+    for (size_t j = i; j < _size; ++j) {
         _data[j] = _data[j + len];
     }
 }
 
 MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) const{
     if (isBegin) {
-        for (VectorIterator i = begin(); i != end(); ++i) {
+        for (MyVector::VectorIterator i = begin(); i != end(); ++i) {
             if (*(i) == value) {
                 return i;
             }
         }
     }
     else {
-        VectorIterator vEnd = nullptr;
-        for (VectorIterator i = begin(); i != end(); ++i) {
+        MyVector::VectorIterator vEnd = nullptr;
+        for (MyVector::VectorIterator i = begin(); i != end(); ++i) {
             if (*(i) == value) {
                 vEnd = i;
             }
@@ -200,7 +200,7 @@ MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) co
 
 void MyVector::reserve(const size_t capacity) {
     ValueType* data = new ValueType[capacity];
-    for (int i = 0; i < _size; ++i) {
+    for (size_t i = 0; i < _size; ++i) {
         data[i] = _data[i];
     }
     std::swap(_data, data);
@@ -213,7 +213,7 @@ void MyVector::resize(const size_t size, const ValueType& value) {
         if (size > _capacity) {
             resize(size);
         }
-        for (int i = _size; i < size; ++i) {
+        for (size_t i = _size; i < size; ++i) {
             _data[i] = value;
         }
     }
@@ -230,14 +230,14 @@ void MyVector::clear() {
 void MyVector::resize(int must) {
     while (_capacity < must) {
         if (_strategy == ResizeStrategy::Multiplicative) {
-            _capacity = _capacity * _coef;
+            _capacity = static_cast<int>(_size * _coef);
         }
         else {
             _capacity = _capacity + _coef;
         }
     }
     ValueType* data = new ValueType[_capacity];
-    for (int i = 0; i < _size; ++i) {
+    for (size_t i = 0; i < _size; ++i) {
         data[i] = _data[i];
     }
     std::swap(_data, data);
@@ -245,36 +245,16 @@ void MyVector::resize(int must) {
 }
 
 MyVector::VectorIterator MyVector::begin(){
-    if (_size) {
-        return VectorIterator(&_data[0]);
-    }
-    else {
-        return VectorIterator(nullptr);
-    }
+    return MyVector::VectorIterator(&_data[0]);
 }
 MyVector::ConstVectorIterator MyVector::cbegin() const{
-    if (_size) {
-        return ConstVectorIterator(&_data[0]);
-    }
-    else {
-        return ConstVectorIterator(nullptr);
-    }
+    return MyVector::ConstVectorIterator(&_data[0]);
 }
 MyVector::VectorIterator MyVector::end(){
-    if (_size) {
-        return VectorIterator(&_data[_size]);
-    }
-    else {
-        return VectorIterator(nullptr);
-    }
+    return MyVector::VectorIterator(&_data[size()]);
 }
 MyVector::ConstVectorIterator MyVector::cend() const{
-    if (_size) {
-        return ConstVectorIterator(&_data[_size]);
-    }
-    else {
-        return ConstVectorIterator(nullptr);
-    }
+    return MyVector::ConstVectorIterator(&_data[size()]);
 }
 
 MyVector::VectorIterator::VectorIterator(pointer pData) 

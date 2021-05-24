@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cstddef>
+#include<iterator>
 
 // стратегия изменения capacity
 enum class ResizeStrategy {
