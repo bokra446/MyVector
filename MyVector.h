@@ -53,7 +53,7 @@ public:
         ConstVectorIterator(pointer pData);
         //ConstVectorIterator(pointer pData, size_t idx);
 
-        const reference operator*();
+        reference operator*();
         const pointer operator->();
 
         bool operator==(const ConstVectorIterator& other) const;
@@ -87,10 +87,10 @@ public:
     size_t size() const;
     float loadFactor() const;
 
-    VectorIterator begin() const;
-    ConstVectorIterator cbegin() const;
-    VectorIterator end() const;
-    ConstVectorIterator cend() const;
+    VectorIterator begin();
+    ConstVectorIterator begin() const;
+    VectorIterator end();
+    ConstVectorIterator end() const;
 
     // доступ к элементу, 
     // должен работать за O(1)
@@ -119,7 +119,7 @@ public:
     // должен работать за O(n)
     // если isBegin == true, найти индекс первого элемента, равного value, иначе последнего
     // если искомого элемента нет, вернуть end
-    VectorIterator find(const ValueType& value, bool isBegin = true) const;
+    VectorIterator find(const ValueType& value, bool isBegin = true);
 
     // зарезервировать память (принудительно задать capacity)
     void reserve(const size_t capacity);

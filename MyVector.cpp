@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <cstddef>
+#include <iostream>
 
 
 MyVector::MyVector(size_t size,
@@ -169,13 +170,13 @@ void MyVector::insert(MyVector::ConstVectorIterator it, const ValueType& value) 
         _data = new ValueType(1);
     }
     MyVector::VectorIterator i;
-    for(i = begin(); *i != *it; ++i){}
+    for (i = begin(); *i != *it; ++i) {}
     ++i;
     ValueType prevValue, curValue;
     prevValue = *it;
     *(i) = value;
     ++i;
-    for (i; i != end(); ++i) {
+    for (; i != end(); ++i) {
         curValue = *(i);
         *(i) = prevValue;
         prevValue = curValue;
@@ -190,8 +191,8 @@ void MyVector::insert(ConstVectorIterator it, const MyVector& value) {
     ++i;
     ++j;
     MyVector::VectorIterator k = j;
-    for (i; i != (_data + value._size); ++i) {}
-    for (i; i != (_data + value._size + _size); ++i, ++j) {
+    for (; i != (_data + value._size); ++i) {}
+    for (; i != (_data + value._size + _size); ++i, ++j) {
         *i = *j;
     }
     for (int l = 0; l < value._size; ++l, ++k) {
@@ -214,9 +215,10 @@ void MyVector::erase(const size_t i, const size_t len) {
     }
 }
 
-MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) const {
+MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin)  {
     if (isBegin) {
-        for (MyVector::VectorIterator i = begin(); i != end(); ++i) {
+        MyVector::VectorIterator i = nullptr;
+        for (i = begin(); i != end(); ++i) {
             if (*(i) == value) {
                 return i;
             }
@@ -224,7 +226,7 @@ MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) co
     }
     else {
         MyVector::VectorIterator vEnd = nullptr;
-        for (MyVector::VectorIterator i = begin(); i != end(); ++i) {
+        for (auto i = begin(); i != end(); ++i) {
             if (*(i) == value) {
                 vEnd = i;
             }
@@ -266,32 +268,38 @@ void MyVector::clear() {
 }
 
 void MyVector::resize(int must) {
-    while (_capacity < must) {
+    if (!_capacity) {
+        ++_capacity;
+        ++_size;
+    }
+    while (_capacity <= must) {
         if (_strategy == ResizeStrategy::Multiplicative) {
-            _capacity = static_cast<int>(_size * _coef);
+            _capacity = static_cast<size_t>(_capacity * _coef + _capacity);
         }
         else {
-            _capacity = _capacity + _coef;
+            _capacity = _capacity + static_cast<int>(_coef);
         }
     }
     ValueType* data = new ValueType[_capacity];
     for (size_t i = 0; i < _size; ++i) {
         data[i] = _data[i];
     }
+    delete[] _data;
+    _data = nullptr;
     std::swap(_data, data);
-    delete[] data;
+    //delete[] data;
 }
 
-MyVector::VectorIterator MyVector::begin() const {
+MyVector::VectorIterator MyVector::begin() {
     return MyVector::VectorIterator(&_data[0]);
 }
-MyVector::ConstVectorIterator MyVector::cbegin() const {
+MyVector::ConstVectorIterator MyVector::begin() const {
     return MyVector::ConstVectorIterator(&_data[0]);
 }
-MyVector::VectorIterator MyVector::end() const {
+MyVector::VectorIterator MyVector::end() {
     return MyVector::VectorIterator(&_data[size()]);
 }
-MyVector::ConstVectorIterator MyVector::cend() const {
+MyVector::ConstVectorIterator MyVector::end() const {
     return MyVector::ConstVectorIterator(&_data[size()]);
 }
 
@@ -329,7 +337,7 @@ MyVector::VectorIterator& MyVector::VectorIterator::operator++() {
     return *this;
 }
 MyVector::VectorIterator MyVector::VectorIterator::operator++(int) {
-    VectorIterator temp = *this;
+    VectorIterator temp(*this);
     ++* (this);
     return temp;
 }
@@ -350,11 +358,11 @@ bool MyVector::ConstVectorIterator::operator!=(const ConstVectorIterator& other)
     return !(_ptr == other._ptr);
 }
 MyVector::ConstVectorIterator& MyVector::ConstVectorIterator::operator++() {
-    _ptr++;
+    ++_ptr;
     return *this;
 }
 MyVector::ConstVectorIterator MyVector::ConstVectorIterator::operator++(int) {
-    ConstVectorIterator temp = *this;
+    ConstVectorIterator temp(*this);
     ++* (this);
     return temp;
 }
