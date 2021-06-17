@@ -36,8 +36,7 @@ public:
         bool operator!=(const VectorIterator& other) const;
         VectorIterator& operator++();
         VectorIterator operator++(int);
-        //VectorIterator& operator--();
-        //VectorIterator operator--(int);
+ 
     private:
         pointer _ptr;
     };
@@ -60,8 +59,7 @@ public:
         bool operator!=(const ConstVectorIterator& other) const;
         ConstVectorIterator& operator++();
         ConstVectorIterator operator++(int);
-        //ConstVectorIterator& operator--();
-        //ConstVectorIterator operator--(int);
+
     private:
         pointer _ptr;
     };
@@ -132,11 +130,14 @@ public:
     // очистка вектора, без изменения capacity
     void clear();
 
-    void resize(int must);
+
+    friend std::ostream& operator<<(std::ostream& out, const MyVector& o);
 private:
     ValueType* _data;
     size_t _size;
     size_t _capacity;
     ResizeStrategy _strategy;
     float _coef;
+
+    void resizeCapacity(int must);
 };

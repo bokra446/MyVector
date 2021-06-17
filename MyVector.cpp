@@ -50,11 +50,11 @@ MyVector& MyVector::operator=(const MyVector& copy) {
     if (&copy == this) {
         return *this;
     }
-    _size = copy._size;
-    _capacity = copy._capacity;
     if (_data != nullptr) {
         delete[] _data;
     }
+    _size = copy._size;
+    _capacity = copy._capacity;
     if (nullptr == copy._data) {
         _data = nullptr;
     }
@@ -70,10 +70,15 @@ MyVector& MyVector::operator=(const MyVector& copy) {
 }
 
 MyVector::MyVector(MyVector&& other) noexcept {
+    _size = 0;
     std::swap(_size, other._size);
+    _capacity = 0;
     std::swap(_capacity, other._capacity);
     _data = other._data;
-    other._data = nullptr;
+    if (other._data != nullptr) {
+        delete[] other._data;
+        other._data = nullptr;
+    }
     std::swap(_coef, other._coef);
     std::swap(_strategy, other._strategy);
 }
@@ -83,11 +88,13 @@ MyVector& MyVector::operator=(MyVector&& other) noexcept {
         return *this;
     if (_data != nullptr) {
         delete[] _data;
+        _data = nullptr;
     }
+    _size = 0;
     std::swap(_size, other._size);
+    _capacity = 0;
     std::swap(_capacity, other._capacity);
-    _data = other._data;
-    other._data = nullptr;
+    std::swap(_data, other._data);
     std::swap(_coef, other._coef);
     std::swap(_strategy, other._strategy);
     return *this;
@@ -97,6 +104,8 @@ MyVector::~MyVector() {
     if (_data != nullptr) {
         delete[] _data;
     }
+    _size = 0;
+    _capacity = 0;
 }
 
 size_t MyVector::capacity() const {
@@ -126,15 +135,15 @@ const ValueType& MyVector::operator[](const size_t i) const {
 
 void MyVector::pushBack(const ValueType& value) {
     if (_capacity < _size + 1) {
-        resize(_capacity + 1);
+        resizeCapacity(_capacity + 1);
     }
-    ++_size;
     _data[_size] = value;
+    ++_size;
 }
 
 void MyVector::insert(const size_t i, const ValueType& value) {
     if (_capacity < _size + 1) {
-        resize(_capacity + 1);
+        resizeCapacity(_capacity + 1);
     }
     ++_size;
     if (_data == nullptr) {
@@ -151,27 +160,26 @@ void MyVector::insert(const size_t i, const ValueType& value) {
 }
 void MyVector::insert(const size_t i, const MyVector& value) {
     if (_capacity < (_size + value._size)) {
-        resize(_size + value._size);
+        resizeCapacity(_size + value._size);
     }
-    for (size_t j = _size - 1; j >= i; --j) {
+    for (size_t j = size() - 1; j >= i; --j) {
         _data[j + value._size] = _data[j];
     }
-    for (size_t j = i; j < value._size; ++j) {
+    for (size_t j = i; j < value._size + i; ++j) {
         _data[j] = value._data[j - i];
     }
-    _size = _size + i;
+    _size = _size + value._size;
 }
 void MyVector::insert(MyVector::ConstVectorIterator it, const ValueType& value) {
     if (_capacity < _size + 1) {
-        resize(_capacity + 1);
+        resizeCapacity(_capacity + 1);
     }
     ++_size;
     if (_data == nullptr) {
         _data = new ValueType(1);
     }
     MyVector::VectorIterator i;
-    for (i = begin(); *i != *it; ++i) {}
-    ++i;
+    for (i = begin(); i.operator->() != it.operator->(); ++i) {}
     ValueType prevValue, curValue;
     prevValue = *it;
     *(i) = value;
@@ -184,20 +192,26 @@ void MyVector::insert(MyVector::ConstVectorIterator it, const ValueType& value) 
 }
 void MyVector::insert(ConstVectorIterator it, const MyVector& value) {
     if (_capacity < (_size + value._size)) {
-        resize(_size + value._size);
+        resizeCapacity(_size + value._size);
     }
     MyVector::VectorIterator i, j;
-    for (i = begin(), j = begin(); *i != *it; ++i, ++j) {}
-    ++i;
-    ++j;
+    for (i = begin(), j = begin(); i.operator->() != it.operator->(); ++i, ++j) {}
     MyVector::VectorIterator k = j;
-    for (; i != (_data + value._size); ++i) {}
-    for (; i != (_data + value._size + _size); ++i, ++j) {
-        *i = *j;
+    ValueType* buffer = new ValueType[value._size];
+    size_t l = 0;
+    for (; i != (_data + value._size); ++i, ++l) {
+        buffer[l] = *i;
+    }
+    ValueType temp;
+    for (; i != (_data + value._size + _size); ++i, ++j, ++l) {
+        temp = *i;
+        *i = buffer[l % value._size];
+        buffer[l % value._size] = temp;
     }
     for (int l = 0; l < value._size; ++l, ++k) {
         *k = value._data[l];
     }
+    _size = _size + value._size;
 }
 
 void MyVector::popBack() {
@@ -215,7 +229,7 @@ void MyVector::erase(const size_t i, const size_t len) {
     }
 }
 
-MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin)  {
+MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) {
     if (isBegin) {
         MyVector::VectorIterator i = nullptr;
         for (i = begin(); i != end(); ++i) {
@@ -244,33 +258,32 @@ void MyVector::reserve(const size_t capacity) {
         data[i] = _data[i];
     }
     std::swap(_data, data);
-    delete[] data;
+    if (_data != nullptr) {
+        delete[] _data;
+        _data = nullptr;
+    }
     _capacity = capacity;
 }
 
 void MyVector::resize(const size_t size, const ValueType& value) {
     if (size > _size) {
         if (size > _capacity) {
-            resize(size);
+            resizeCapacity(size);
         }
         for (size_t i = _size; i < size; ++i) {
             _data[i] = value;
         }
     }
-    else {
-        _size = size;
-    }
+    _size = size;
 }
 
 void MyVector::clear() {
     _size = 0;
-    delete[] _data;
 }
 
-void MyVector::resize(int must) {
+void MyVector::resizeCapacity(int must) {
     if (!_capacity) {
         ++_capacity;
-        ++_size;
     }
     while (_capacity <= must) {
         if (_strategy == ResizeStrategy::Multiplicative) {
@@ -284,10 +297,11 @@ void MyVector::resize(int must) {
     for (size_t i = 0; i < _size; ++i) {
         data[i] = _data[i];
     }
-    delete[] _data;
-    _data = nullptr;
+    if (_data != nullptr) {
+        delete[] _data;
+        _data = nullptr;
+    }
     std::swap(_data, data);
-    //delete[] data;
 }
 
 MyVector::VectorIterator MyVector::begin() {
@@ -341,15 +355,6 @@ MyVector::VectorIterator MyVector::VectorIterator::operator++(int) {
     ++* (this);
     return temp;
 }
-/*MyVector::VectorIterator& MyVector::VectorIterator::operator--() {
-    _ptr--;
-    return *this;
-}
-MyVector::VectorIterator MyVector::VectorIterator::operator--(int) {
-    VectorIterator temp = *this;
-    --* (this);
-    return temp;
-}*/
 
 bool MyVector::ConstVectorIterator::operator==(const ConstVectorIterator& other) const {
     return _ptr == other._ptr;
@@ -366,12 +371,11 @@ MyVector::ConstVectorIterator MyVector::ConstVectorIterator::operator++(int) {
     ++* (this);
     return temp;
 }
-/*MyVector::ConstVectorIterator& MyVector::ConstVectorIterator::operator--() {
-    _ptr--;
-    return *this;
+
+std::ostream& operator<<(std::ostream& out, const MyVector& o) {
+    for (MyVector::ConstVectorIterator i = o.begin(); i != o.end(); ++i) {
+        out << *i;
+    }
+    out << ": data, " << o._size << ": size" << std::endl;
+    return out;
 }
-MyVector::ConstVectorIterator MyVector::ConstVectorIterator::operator--(int) {
-    ConstVectorIterator temp = *this;
-    --*(this);
-    return temp;
-}*/
